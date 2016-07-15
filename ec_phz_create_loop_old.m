@@ -1,4 +1,4 @@
-function probs = ec_phz_create_loop
+function probs = ec_phz_create_loop_old
 
 participants = [12 14 20 30];
 sessions = 1:2;
@@ -21,7 +21,7 @@ for p = 1:length(participants)
             if exist(splitfile,'file')
                 disp(' ')
                 for i = 1:length(datatypes)
-                    ec_phz_create(participants(p),sessions(s),datatypes{i});
+                    ec_phz_create_old(participants(p),sessions(s),datatypes{i});
                 end
             end
             

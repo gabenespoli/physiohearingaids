@@ -1,13 +1,27 @@
 
+% load data
 PHZ = phz_load(gf('data','ec','phzfiles','scl.phz'));
 
+% processing
+% PHZ = phz_subset(PHZ,PHZ.resp.q1_rt < 7);
 PHZ = phz_blsub(PHZ,'baseline');
+PHZ = phz_rej(PHZ,0.05);
 
-PHZ = phz_rej(PHZ,0.1);
+% change trial order for easy repeated measures in spss
+PHZ.trials = {'sad','calm','angry','happy'};
+PHZ = phz_check(PHZ);
+
+
+% feature = {'acc','rt'};
+% keepVars = {'participant','group'};
+% unstackVars = [];
+feature = 'mean';
+keepVars = {'participant','group','trials'};
+unstackVars = 'trials';
 
 phz_writetable(PHZ,...
-    'summary',{'participant','group','trials'},...
-    'feature',{'mean','max','maxi','slope','slopei','area'},...
+    'summary',keepVars,...
+    'feature',feature,...
     'region',[1 5],...
-    'subset',PHZ.resp.q1_rt < 7,...
-    'save','stats/scl data - rt < 7.csv')
+    'unstack',unstackVars,...
+    'save',gf('ec','stats','scl mean (rej 0.05).csv'))
