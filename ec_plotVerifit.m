@@ -81,3 +81,9 @@ set(gcf,            'Color',            'w'             )
 savefig(sname)
 
 end
+
+function yl = getmaxyl(yl1,yl2)
+ylmin = min([yl1(1), yl2(1)]);
+ylmax = max([yl1(2), yl2(2)]);
+yl = [ylmin, ylmax];
+end
