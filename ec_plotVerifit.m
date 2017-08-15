@@ -85,4 +85,5 @@ function yl = getmaxyl(yl1,yl2)
 ylmin = min([yl1(1), yl2(1)]);
 ylmax = max([yl1(2), yl2(2)]);
 yl = [ylmin, ylmax];
+yl = [0 140];
 end
