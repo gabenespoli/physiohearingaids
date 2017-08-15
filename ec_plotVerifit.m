@@ -1,4 +1,4 @@
-function ec_plotVerifit
+function [axL,axR,axX] = ec_plotVerifit
 
 fname = '~/Dropbox/research/archive/2014/ec/ec_verifit.csv';
 sname = '~/Dropbox/research/archive/2014/ec/plots/verifit.png';
@@ -38,9 +38,7 @@ for i = 1:2, field = names{i};
     ind = ismember(names, field);
     h(i) = plot(axL, 1:m, nanmean(data.(field)), plotSpec{ind});
 end
-yl = get(axL, 'YLim');
 set(axL,            'Color',            'none'          )
-set(axL,            'YLim',             [-5 yl(2)]      )
 set(axL,            'YGrid',            'on'            )
 set(axL,            'Box',              'on'            )
 
@@ -53,11 +51,12 @@ for i = 3:6, field = names{i};
 end
 set(axR,            'Color',            'none'          )
 set(axR,            'YAxisLocation',    'right'         )
-% set(axR,           'YLim',             [-5 yl(2)]      )
 
 %% set plot options
+yl = getmaxyl(get(axL,'YLim'), get(axR,'YLim'));
+set([axL,axR],      'YLim',             yl              )
 set([axL,axR],      'XLim',             [0 m] + 0.5     )
-set([axL,axR],      'XTick',            0:1:m + 0.5     )
+set([axL,axR],      'XTick',            (0:1:m) + 0.5   )
 set([axL,axR],      'XTickLabel',       []              )
 set([axL,axR],      'TickDir',          'out'           )
 
@@ -67,7 +66,7 @@ legend(h, dataLabels, 'Location', 'southwest')
 
 axX = axes;
 set(axX,            'Color',            'none'          )
-set([axL,axR,axX],'XAxisLocation',  'top'           )
+set([axL,axR,axX],  'XAxisLocation',    'top'           )
 set(axX,            'XLim',             get(axL,'Xlim') )
 set(axX,            'XTickLabel',       freqsLabels     )
 set(axX,            'TickLength',       [0 0]           )
