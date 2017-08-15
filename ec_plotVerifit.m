@@ -62,7 +62,8 @@ set([axL,axR],      'TickDir',          'out'           )
 
 set(h, 'MarkerSize', 10);
 set(h, 'LineWidth', 1.5);
-legend(h, dataLabels, 'Location', 'southwest')
+lgnd = legend(h, dataLabels, 'Location', 'southwest');
+set(lgnd,           'Color',            'none'          )
 
 axX = axes;
 set(axX,            'Color',            'none'          )
