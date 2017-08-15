@@ -13,7 +13,7 @@ prefixR = 'Audio_Right_';
 freqsL = cellfun(@(f)[prefixL,f], freqsLabels, 'UniformOutput', false);
 freqsR = cellfun(@(f)[prefixR,f], freqsLabels, 'UniformOutput', false);
 
-aud = [d(:,{'id','group'}), d(:,freqsL), d(:,freqsR)];
+% aud = [d(:,{'id','group'}), d(:,freqsL), d(:,freqsR)];
 
 nhL = d{contains(d.group,'NH'),freqsL};
 nhR = d{contains(d.group,'NH'),freqsR};
@@ -24,7 +24,7 @@ dataLabels = {'NH: LE', 'NH: RE', 'HI: LE', 'HI: RE'};
 plotSpec = {'kx-', 'ko-', 'kx:', 'ko:'};
 
 close all
-fig = figure('OuterPosition', [70 200 800 620]);
+figure('OuterPosition', [70 200 800 620]);
 ax1 = axes;
 set(ax1,        'YDir',             'reverse'       )
 hold on
@@ -47,7 +47,7 @@ legend(h, dataLabels, 'Location', 'southwest')
 yl = get(ax1, 'YLim');
 set(ax1,        'YLim',             [-5 yl(2)]       )
 set(ax1,        'XLim',             [0 m] + 0.5     )
-set(ax1,        'XTick',            [0:1:m] + 0.5   )
+set(ax1,        'XTick',            (0:1:m) + 0.5   )
 set(ax1,        'XTickLabel',       []              )
 set(ax1,        'TickDir',          'out'           )
 set(ax1,        'YGrid',            'on'            )
