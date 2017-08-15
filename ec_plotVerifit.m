@@ -13,10 +13,10 @@ dataLabels = {'LE: Audiometric Threshold', 'RE: Audiometric Threshold', ...
 plotSpec = {'kx-', 'ko-', 'kx--', 'ko--', 'kx:', 'ko:'};
 data.audL = 'Audio_Left_';
 data.audR = 'Audio_Right_';
-data.nalL = 'Left_RESR_';
-data.nalR = 'Right_RESR_';
-data.outL = 'Left_Target1_';
-data.outR = 'Right_Target1_';
+data.nalL = 'Left_Target1_';
+data.nalR = 'Right_Target1_';
+data.outL = 'Left_RESR_';
+data.outR = 'Right_RESR_';
 names = fieldnames(data);
 h = zeros(1,length(names)); % container for plot handles
 for i = 1:length(names), field = names{i};
