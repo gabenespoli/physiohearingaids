@@ -11,23 +11,37 @@ freqsLabels = cellstr(cellfun(@num2str, num2cell(freqs), 'UniformOutput', false)
 dataLabels = { ...
     'LE: Audiometric Threshold', ...
     'RE: Audiometric Threshold', ...
-    'LE: NAL-NL2 (65 dB)', ...
-    'RE: NAL-NL2 (65 dB)', ...
-    'LE: HA Output (65 dB)', ...
-    'RE: HA Output (65 dB)'};
+    'LE: NAL-NL2', ...
+    'RE: NAL-NL2', ...
+    'LE: HA Output', ...
+    'RE: HA Output'};
 plotSpec = {'kx-', 'ko-', 'kx--', 'ko--', 'kx:', 'ko:'};
 data.audL = 'Left_EnteredHL_';
 data.audR = 'Right_EnteredHL_';
-data.nalL = 'Left_Target2_';
-data.nalR = 'Right_Target2_';
-data.outL = 'Left_Test2_';
-data.outR = 'Right_Test2_';
+data.nalL = 'Left_Target'; % there are three levels that will be averaged
+data.nalR = 'Right_Target';
+data.outL = 'Left_Test';
+data.outR = 'Right_Test';
 names = fieldnames(data);
 h = zeros(1,length(names)); % container for plot handles
+
 for i = 1:length(names), field = names{i};
-    data.(field) = cellfun(@(f)[data.(field),f], freqsLabels, 'UniformOutput', false);
-    data.(field) = d{contains(d.group,'HI'), data.(field)};
+    if ismember(i, [3,4,5,6])
+        % average across all presentation levels for targets/tests
+        temp1 = cellfun(@(f)[data.(field),'1_',f], freqsLabels, 'UniformOutput', false);
+        temp2 = cellfun(@(f)[data.(field),'2_',f], freqsLabels, 'UniformOutput', false);
+        temp3 = cellfun(@(f)[data.(field),'3_',f], freqsLabels, 'UniformOutput', false);
+        temp1 = d{contains(d.group,'HI'), temp1};
+        temp2 = d{contains(d.group,'HI'), temp2};
+        temp3 = d{contains(d.group,'HI'), temp3};
+        data.(field) = nanmean(cat(3,temp1,temp2,temp3), 3);
+    else
+        % plain audiogram, no multiple levels to average across
+        data.(field) = cellfun(@(f)[data.(field),f], freqsLabels, 'UniformOutput', false);
+        data.(field) = d{contains(d.group,'HI'), data.(field)};
+    end
 end
+
 close all
 figure('OuterPosition', [70 200 800 620]);
 
