@@ -1,4 +1,4 @@
-function [axL,axR,axX] = ec_plotVerifit
+function ec_plotVerifit
 
 fname = '~/Dropbox/research/archive/2014/ec/ec_verifit.csv';
 sname = '~/Dropbox/research/archive/2014/ec/plots/verifit.png';
@@ -8,15 +8,20 @@ d = d(strcmp(d.group,'HI'), :);
 freqs = [250 500 1000 1500 2000 3000 4000 6000];
 m = length(freqs);
 freqsLabels = cellstr(cellfun(@num2str, num2cell(freqs), 'UniformOutput', false));
-dataLabels = {'LE: Audiometric Threshold', 'RE: Audiometric Threshold', ...
-    'LE: NAL-NL2', 'RE: NAL-NL2', 'LE: HA Output', 'RE: HA Output'};
+dataLabels = { ...
+    'LE: Audiometric Threshold', ...
+    'RE: Audiometric Threshold', ...
+    'LE: NAL-NL2 (65 dB)', ...
+    'RE: NAL-NL2 (65 dB)', ...
+    'LE: HA Output (65 dB)', ...
+    'RE: HA Output (65 dB)'};
 plotSpec = {'kx-', 'ko-', 'kx--', 'ko--', 'kx:', 'ko:'};
-data.audL = 'Audio_Left_';
-data.audR = 'Audio_Right_';
-data.nalL = 'Left_Target1_';
-data.nalR = 'Right_Target1_';
-data.outL = 'Left_RESR_';
-data.outR = 'Right_RESR_';
+data.audL = 'Left_EnteredHL_';
+data.audR = 'Right_EnteredHL_';
+data.nalL = 'Left_Target2_';
+data.nalR = 'Right_Target2_';
+data.outL = 'Left_Test2_';
+data.outR = 'Right_Test2_';
 names = fieldnames(data);
 h = zeros(1,length(names)); % container for plot handles
 for i = 1:length(names), field = names{i};
@@ -86,5 +91,4 @@ function yl = getmaxyl(yl1,yl2)
 ylmin = min([yl1(1), yl2(1)]);
 ylmax = max([yl1(2), yl2(2)]);
 yl = [ylmin, ylmax];
-yl = [0 140];
 end
