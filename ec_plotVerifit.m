@@ -1,7 +1,7 @@
 function ec_plotVerifit
 
-fname = '~/Dropbox/research/archive/2014/ec/ec_verifit.csv';
-sname = '~/Dropbox/research/archive/2014/ec/plots/verifit.png';
+fname = '../ec_verifit.csv';
+sname = '../plots/verifit.png';
 d = readtable(fname);
 d = d(d.included_in_study == 1, :);
 d = d(strcmp(d.group,'HI'), :);
