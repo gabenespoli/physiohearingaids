@@ -1,7 +1,7 @@
 function ec_plotAudiograms
 
-fname = '~/Dropbox/research/archive/2014/ec/ec_audiograms.csv';
-sname = '~/Dropbox/research/archive/2014/ec/plots/audiograms.png';
+fname = '../ec_audiograms.csv';
+sname = '../plots/audiograms.eps';
 d = readtable(fname);
 d = d(d.included_in_study == 1, :);
 
