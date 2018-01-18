@@ -7,10 +7,8 @@ if nargin < 1
 end
 
 % options
-% datafile = gf('data','ec','phzfiles',[datatype,'.phz']);
 datafile = ['~/local/data/ec/phzfiles/',datatype,'.phz'];
-% savefolder = gf('ec','plots');
-savefolder = '~/Dropbox/research/archive/2014/ec/plots';
+savefolder = '~/projects/archive/2014/ec/plots';
 
 fontsize = 32;
 simpleytitle = true;

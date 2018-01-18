@@ -15,7 +15,7 @@ for p = 1:length(participants)
         
         
         try
-            splitfile = gf('data','ec','split',...
+            splitfile = fullfile('~','local','ec','data','split',...
                 [num2str(participants(p)),'-',num2str(sessions(s)),'.mat']); 
             
             if exist(splitfile,'file')

@@ -1,7 +1,7 @@
 function ec_convertbehav
 
-folderin=gf('data','ec','raw_behav');
-folderout=gf('data','ec','behav');
+folderin=fullfile('~','local','ec','data','raw_behav');
+folderout=fullfile('~','local','ec','data','behav');
 id=ec_datafiles('session2');
 
 for p=1:length(id)

@@ -1,6 +1,6 @@
 
 % load data
-PHZ = phz_load(gf('data','ec','phzfiles','scl.phz'));
+PHZ = phz_load(fullfile('~','local','ec','data','phzfiles','scl.phz'));
 
 % processing
 % PHZ = phz_subset(PHZ,PHZ.resp.q1_rt < 7);
@@ -24,4 +24,4 @@ phz_writetable(PHZ,...
     'feature',feature,...
     'region',[1 5],...
     'unstack',unstackVars,...
-    'save',gf('ec','stats','scl mean (rej 0.05).csv'))
+    'save',fullfile('~','projects','archive','2014','ec','stats','scl mean (rej 0.05).csv'))

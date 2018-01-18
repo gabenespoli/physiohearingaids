@@ -15,8 +15,8 @@ function numEpochs = ec_epoch(participant,session,varargin)
 
 % file I/O
 filename = [num2str(participant),'-',num2str(session)];
-inputfolder = gf('data','ec','raw');
-outputfolder = gf('data','ec','split');
+inputfolder = fullfile('~','local','ec','data','raw');
+outputfolder = fullfile('~','local','ec','data','split');
 inputfile = fullfile(inputfolder,[filename,'.mat']);
 outputfile = fullfile(outputfolder,[filename,'.mat']);
 

@@ -2,8 +2,8 @@ function PHZ = ec_phz_create_old(participant,session,datatype)
 
 % file I/O
 filename = [num2str(participant),'-',num2str(session)];
-inputfolder = gf('data','ec','split');
-outputfolder = gf('data','ec','phzfiles',lower(datatype));
+inputfolder = fullfile('~','local','ec','data','split');
+outputfolder = fullfile('~','local','ec','data','phzfiles',lower(datatype));
 inputfile = fullfile(inputfolder,[filename,'.mat']);
 outputfile = fullfile(outputfolder,[filename,'.mat']);
 
@@ -13,7 +13,7 @@ disp(inputfile)
 load(inputfile,'data','params')
 
 % load behav file
-load(fullfile(gf('data','ec','behav'),...
+load(fullfile(fullfile('~','local','ec','data','behav'),...
     [num2str(participant),'-',num2str(session),'.mat']),...
     'answerString','respString','ACC','RT');
 

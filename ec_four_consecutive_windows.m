@@ -12,7 +12,7 @@ win4 = [1.5 2];
 %% code
 
 setup('phz')
-phz = phz_load(gf('data','ec','phzfiles','scr_all.phz'));
+phz = phz_load(fullfile('~','local','ec','data','phzfiles','scr_all.phz'));
 
 phz_plot(phz,'summary',{'group','trials'},'region',win1,'feature',feature)
 phz_plot(phz,'summary',{'group','trials'},'region',win2,'feature',feature)
