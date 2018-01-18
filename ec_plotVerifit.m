@@ -1,7 +1,7 @@
-function ec_plotVerifit
+function data = ec_plotVerifit
 
 fname = '../ec_verifit.csv';
-sname = '../plots/verifit.png';
+sname = '../plots/verifit.eps';
 d = readtable(fname);
 d = d(d.included_in_study == 1, :);
 d = d(strcmp(d.group,'HI'), :);
@@ -16,8 +16,10 @@ dataLabels = { ...
     'LE: HA Output', ...
     'RE: HA Output'};
 plotSpec = {'kx-', 'ko-', 'kx--', 'ko--', 'kx:', 'ko:'};
-data.audL = 'Left_EnteredHL_';
-data.audR = 'Right_EnteredHL_';
+% data.audL = 'Left_EnteredHL_';
+% data.audR = 'Right_EnteredHL_';
+data.audL = 'Audio_Left_';
+data.audR = 'Audio_Right_';
 data.nalL = 'Left_Target'; % there are three levels that will be averaged
 data.nalR = 'Right_Target';
 data.outL = 'Left_Test';

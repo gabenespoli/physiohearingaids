@@ -11,25 +11,28 @@ function PHZ = ec_phz_create
 %% settings
 
 % 1. phz_create
-study = 'EmoCom Physio';
-filenameConvention = 'participant-session';
+study = 'Physio Resp to Emo Speech';
+filenameConvention = 'participant-session-group';
 
 datatype = 'scl';
 channelNumber = getChannelNumber(datatype);
 
 region.baseline = [-1 0]; % in s
-region.target = [0 4]; % in s
-region.target2 = [1 5];
-region.target3 = [2 6];
+region.target = [1 5]; % in s
+region.target2 = [];
+region.target3 = [];
 region.target4 = [];
 
 % 2. phz_transform
 conversionFactor = getConversionFactor(datatype);
 dataUnits = getDataUnits(datatype);
 
-% 3. phz_filter [locut hicut notch order]
-% EMG [10 450], RSP [0.5 1], GSR [0.5 0], PPG [0.5 3], ([hp lp])
-filterCutoff = [];
+% 3. phz_filter [locut hicut notch]
+% EMG [10 450], RSP [0.5 1], SCR [0.05 0], PPG [0.5 3], ([hp lp])
+%                            SCL []
+filterCutoff = [0.05];
+filterOrder = 4;
+do_zerophase = false;
 
 % 4a. phzUtil_findAudioMarkers
 % exceptions:
@@ -49,13 +52,13 @@ numMarkers = 64;
 extractWindow = [0 8]; % in seconds
 
 % 5. phz_save
-saveFolder = '/Users/gmac/Documents/data/ec/phzfiles';
-makeSubfolderWithDatatypeName = true;
+saveFolder       = fullfile('~','local','data','ec','phzfiles',datatype);
+epochTimesFolder = fullfile('~','local','data','ec','epoch_times_in_samples');
 
 %% phzlab code
 
 % pop-up window to select files
-[files,folder] = uigetfile('.mat','Select PHZ files to gather...','MultiSelect','on');
+[files,folder] = uigetfile('.mat','MultiSelect','on');
 files = cellstr(files);
 
 % loop through files
@@ -64,30 +67,42 @@ for i = 1:length(files)
     [~,filename] = fileparts(files{i});
     currentFile = fullfile(folder,[filename,'.mat']);
         
-    PHZ = phz_create(currentFile,...
+    PHZ = phz_create('file',currentFile,...
         'namestr',filenameConvention,...
         'channel',channelNumber,...
-        'study',study);
+        'study',study,...
+        'datatype',datatype);
     PHZ.group = ec_group([char(PHZ.participant),'-',char(PHZ.session)]);
     PHZ.region = region;
     
+    PHZ = phz_transform(PHZ,conversionFactor);
+    PHZ.units = dataUnits;
     
-    PHZ = phz_transform(PHZ,conversionFactor,dataUnits);
+%     PHZ = phz_filter(PHZ,filterCutoff,...
+%         'zerophase',do_zerophase,...
+%         'order',filterOrder);
     
-    PHZ = phz_filter(PHZ,filterCutoff);
-    
-    markerData = phz_create(currentFile,'channel',markerChannel);
-    times = phzUtil_findAudioMarkers(markerData.data,...
-        threshold,markerBetween * markerData.srate,...
-        'window',extractWindow * markerData.srate,...
-        'numMarkers',numMarkers,...
-        'plotMarkers',plotMarkers);
-    PHZ = phz_epoch(PHZ,extractWindow,times);
+%     markerData = phz_create('file',currentFile,'channel',markerChannel);
+%     times = phzUtil_findAudioMarkers(markerData.data,...
+%         threshold,markerBetween * markerData.srate,...
+%         'window',extractWindow * markerData.srate,...
+%         'numMarkers',numMarkers,...
+%         'plotMarkers',plotMarkers);
+
+%     timesFilename = [char(PHZ.participant),'-',...
+%         char(PHZ.group),'-',...
+%         char(PHZ.session)];
+    times = dlmread(fullfile(epochTimesFolder,[filename,'.txt']));
+    PHZ = phz_epoch(PHZ,extractWindow,times,'timeUnits','samples');
     
     PHZ = insertTrialsAndBehaviouralResponses(PHZ);
     
-    if makeSubfolderWithDatatypeName, saveFolder = getDataDir(saveFolder,PHZ.datatype); end
     PHZ = phz_save(PHZ,fullfile(saveFolder,[filename,'.phz']));
+    
+    % save epoch times to text file
+%     fid = fopen(fullfile(epochTimesFolder,[filename,'.txt']),'w');
+%     fprintf(fid,'%i\n',PHZ.proc.epoch.times);
+%     fclose(fid);
     
 end
 end
@@ -98,7 +113,7 @@ switch lower(datatype)
     case 'zyg',         chan = 1;
     case 'cor',         chan = 2;
     case 'rsp',         chan = 3;
-    case {'scl','gsr'}, chan = 4;
+    case {'scl','scr'}, chan = 4;
     case {'hr','ppg'},  chan = 5;
 end
 end
@@ -108,7 +123,7 @@ switch lower(datatype)
     case 'zyg',         units = 'mV';
     case 'cor',         units = 'mV';
     case 'rsp',         units = '';
-    case {'scl','gsr'}, units = 'µS';
+    case {'scl','scr'}, units = '\muS';
     case {'hr','ppg'},  units = '';
 end
 end
@@ -117,18 +132,27 @@ function conversionFactor = getConversionFactor(datatype)
 switch lower(datatype)
     case {'zyg','cor'}, conversionFactor = (1/1000)*1000;
     case 'rsp',         conversionFactor = 1/10;
-    case {'scl','gsr'}, conversionFactor = 1/5;
+    case {'scl','scr'}, conversionFactor = 1/5;
     case {'hr','ppg'},  conversionFactor = 1/100;
 end
 end
 
 function PHZ = insertTrialsAndBehaviouralResponses(PHZ)
 % load behav file
-load(fullfile(gf('data','ec','behav'),...
+load(fullfile('~','local','data','ec','behav',...
     [char(PHZ.participant),'-',char(PHZ.session),'.mat']),...
     'answerString','respString','ACC','RT');
 
 % deal with exceptions (i.e., incorrect number of epochs)
+% 1-1, thresh 0.1 found 55 markers, removed 11th marker, 54 markers remain
+% 2-1, thresh 0.1 found 66 markers, removed 1st and 2nd, 64 remain
+% 7-1, thresh 0.1 found 22 23 24
+% 9-2, remove 1st
+% 10-1 remove 28th
+
+% 12-2, 65 markers, looks like there are really only 62 good ones though
+% 14-1, can't read mat file
+% 30-2, can't read mat file
 switch [char(PHZ.participant),'-',char(PHZ.session)]
     case '1-1',     ind = [1:32,43:64]; % 54 markers
     case '4-1',     ind = 1:31; % 31 markers
@@ -149,12 +173,5 @@ PHZ.resp.q1_rt = RT(ind);
 
 % set trial order and plot colours
 PHZ.trials = {'angry','happy','sad','calm'};
-PHZ.meta.spec.trials = {'r','b','r--','b--'};
-end
-
-function newFolder = getDataDir(saveFolder,datatype)
-newFolder = fullfile(saveFolder,datatype);
-if ~exist(newFolder,'dir')
-    [~,~] = system(['mkdir ',newFolder]);
-end
+PHZ.meta.spec.trials = {'k-.','k-','k:','k--'};
 end

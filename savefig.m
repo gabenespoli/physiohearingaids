@@ -1,20 +1,25 @@
-function savefig(filename)
-
-background = get(gcf, 'color'); % save the original bg color for later use
-
-set(gcf,'InvertHardCopy','off');
+function savefig(filename, fig)
+if nargin < 2, fig = gcf; end
 
 % add .png extension if not already
 [~,~,ext] = fileparts(filename);
-if ~strcmp(ext,'.png'), filename = [filename,'.png']; end
 
-% print file w/o transparency
-print('-dpng',filename);
+switch ext
+    case '.png'
+        background = get(gcf, 'color'); % save the original bg color for later use
+        set(fig, 'InvertHardCopy','off');
 
-% read image data back in
-cdata = imread(filename);
+        % print file w/o transparency
+        print(fig, '-dpng',filename);
 
-% write it back out - setting transparency info
-imwrite(cdata,filename,'png','BitDepth',16,'transparency',background)
+        % read image data back in
+        cdata = imread(filename);
 
+        % write it back out - setting transparency info
+        imwrite(cdata,filename,'png','BitDepth',16,'transparency',background)
+
+    case '.eps'
+        print(fig, '-depsc',filename);
+
+end
 end
