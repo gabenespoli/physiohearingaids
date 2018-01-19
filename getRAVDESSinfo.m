@@ -31,7 +31,8 @@
 % E.g., the file /default/12/02-01-06-01-02-01-12.mp4
 % This is a public-release RAVDESS file (trimmed +-1s either side of vocal sound). It is the 12th actor, and is a female (even numbered). It is Video-only (02-), Speech (01-), Fearful (06-), Normal intensity (01-), Dogs statement (02-), 1st repetition (01-), Actor 12 (12).
 
-function [T,C]=getRAVDESSinfo(filenames)
+function [T,C]=getRAVDESSinfo(filenames, verbose)
+if nargin < 2, verbose = true; end
 
 % remove leading singleton dimensions
 filenames=shiftdim(filenames);
@@ -42,7 +43,8 @@ badFilenames = {'.', '..'};
 rmInds = [];
 
 for i=1:size(filenames,1)
-    filename = filenames{i};
+    if verbose, disp(filenames{i}), end
+    [~,filename] = fileparts(filenames{i});
 
     if ismember(filename, badFilenames)
         rmInds = [rmInds, i];
@@ -51,7 +53,7 @@ for i=1:size(filenames,1)
 
     % 
     stiminfo{i,1} = filename;
-    
+
     % 1. MODALITY
     switch filename(1:2)
         case '01', stiminfo{i,2}='full-AV';
@@ -60,13 +62,13 @@ for i=1:size(filenames,1)
         case '04', stiminfo{i,2}='full-AV full-length';
         case '05', stiminfo{i,2}='audio-only full-length';
     end
-    
+
     % 2. VOCAL CHANNEL
     switch filename(4:5)
         case '01', stiminfo{i,3}='speech';
         case '02', stiminfo{i,3}='song';
     end
-    
+
     % 3. EMOTION
     switch filename(7:8)
         case '01', stiminfo{i,4}='neutral';
@@ -78,28 +80,28 @@ for i=1:size(filenames,1)
         case '07', stiminfo{i,4}='disgust';
         case '08', stiminfo{i,4}='surprise';
     end
-    
+
     % 4. EMOTIONAL INTENSITY
     switch filename(10:11)
         case '01', stiminfo{i,5}='normal';
         case '02', stiminfo{i,5}='strong';
     end    
-    
+
     % 5. STATEMENT
     switch filename(13:14)
         case '01', stiminfo{i,6}='kids';
         case '02', stiminfo{i,6}='dogs';
     end       
-    
+
     % 6. REPETITION
     switch filename(16:17)
         case '01', stiminfo{i,7}=1;
         case '02', stiminfo{i,7}=2;
     end         
-    
+
     % 7. ACTOR
     stiminfo{i,8}=str2double(filename(19:20));
-    
+
     % 8. ACTOR GENDER
     switch mod(str2double(filename(19:20)),2)
         case 0, stiminfo{i,9}='female';
@@ -107,13 +109,13 @@ for i=1:size(filenames,1)
     end
 
     % 9. RMS
-    [y,Fs] = audioread(filename);
+    [y,Fs] = audioread(filenames{i});
     % remove first second, remove white noise channel
     sample1 = 1 * Fs;
     sample2 = 3 * Fs;
     y = y(sample1:sample2, 1);
     stiminfo{i,10} = sqrt(mean(mean(y .^ 2)));
-    
+
 end
 stiminfo(rmInds,:) = [];
 
@@ -129,10 +131,13 @@ T = cell2table(stiminfo, 'VariableNames', { ...
     'actor', ...
     'actor_gender', ...
     'rms'});
-    
-emotions = unique(T.emotion);
-for i = 1:length(emotions)
-    fprintf('%s: %f\n', ...
-        emotions{i}, ...
-        mean(T.rms(contains(T.emotion,emotions{i}))))
+
+if verbose
+    emotions = unique(T.emotion);
+    disp('RMS')
+    for i = 1:length(emotions)
+        fprintf('%s: %f\n', ...
+            emotions{i}, ...
+            mean(T.rms(contains(T.emotion,emotions{i}))))
+    end
 end
