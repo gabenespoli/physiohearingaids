@@ -21,16 +21,11 @@ for p=1:length(id)
     respString=[sResp(:,1);sResp(:,2)];
     stimFiles=[stimFiles(:,1);stimFiles(:,2)];
     stimOrder=[stimOrder(:,1);stimOrder(:,2)];
-
-%     resp=nResp;
-%     RT=respTime;
-%     respString=sResp;
-%     stimFiles=stimFiles;
-%     stimOrder=stimOrder;
-
+    
+    stimFiles = stimFiles(stimOrder);
     RAVDESSfilenames = strcat(stimfolder, stimulusSet, '/', stimFiles);
     stimInfo=getRAVDESSinfo(RAVDESSfilenames, false);
-    stimInfo=stimInfo(stimOrder,:);
+    % stimInfo=stimInfo(stimOrder,:);
     answerString=stimInfo{:,'emotion'};
 
     happy=find(strcmp(answerString,'happy'));
@@ -38,22 +33,25 @@ for p=1:length(id)
     angry=find(strcmp(answerString,'angry'));
     calm=find(strcmp(answerString,'calm'));
 
-    answer(happy)=1;
-    answer(sad)=2;
-    answer(angry)=3;
-    answer(calm)=4;
+    answer(happy)=1; %#ok<AGROW>
+    answer(sad)=2; %#ok<AGROW>
+    answer(angry)=3; %#ok<AGROW>
+    answer(calm)=4; %#ok<AGROW>
     answer=answer';
 
     for i=1:length(resp)
         if answer(i)==resp(i)
-            ACC(i)=1;
-        else ACC(i)=0;
+            ACC(i)=1; %#ok<AGROW>
+        else 
+            ACC(i)=0; %#ok<AGROW>
         end
     end
     ACC=ACC';
 
+    % all vars that are saved should be in the correct order
+    % so we won't save stimOrder so that we don't get confused later
     save(fullfile(folderout,[id{p},'.mat']),'resp','respString','answer',...
         'answerString','RT','ACC','happy','sad','angry','calm',...
-        'stimOrder','stimFiles')
+        'stimFiles')
     
 end
