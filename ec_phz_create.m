@@ -11,7 +11,7 @@ function PHZ = ec_phz_create
 %% settings
 
 % 1. phz_create
-study = 'Physio Resp to Emo Speech';
+study = 'Hearing Aids SCL';
 filenameConvention = 'participant-session-group';
 
 datatype = 'scl';
