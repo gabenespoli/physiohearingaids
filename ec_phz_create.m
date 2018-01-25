@@ -57,6 +57,11 @@ extractWindow = [0 8]; % in seconds
 saveFolder       = fullfile('~','local','ec','data','phzfiles',datatype);
 epochTimesFolder = fullfile('~','local','ec','data','epoch_times_in_samples');
 behavFolder      = fullfile('~','local','ec','data','behav');
+force = true;
+
+% 6. phz_combine
+savename = fullfile('~','local','ec','data','phzfiles','scl.phz');
+force_combine = false;
 
 %% phzlab code
 
@@ -101,6 +106,8 @@ for i = 1:length(files)
     if ~exist(currentFile, 'file')
         warning(['File ''', currentFile, ''' not found. Skipping...'])
         continue
+    else
+        fprintf('Processing ec file %i/%i: ''%s''\n', i, length(files), currentFile)
     end
         
     PHZ = phz_create('file',currentFile,...
@@ -136,7 +143,7 @@ for i = 1:length(files)
     
     PHZ = insertTrialsAndBehaviouralResponses(PHZ,behavFolder);
     
-    phz_save(PHZ,fullfile(saveFolder,[filename,'.phz']));
+    phz_save(PHZ,fullfile(saveFolder,[filename,'.phz']),verbose,force);
     
     % save epoch times to text file
 %     fid = fopen(fullfile(epochTimesFolder,[filename,'.txt']),'w');
@@ -147,6 +154,7 @@ end
 
 PHZ = phz_combine(saveFolder);
 
+PHZ = phz_save(PHZ, savename, true, false);
 
 
 end
