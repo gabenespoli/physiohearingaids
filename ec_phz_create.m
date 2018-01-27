@@ -60,10 +60,9 @@ behavFolder      = fullfile('~','local','ec','data','behav');
 force = true;
 
 % 6. phz_combine
-savename = fullfile('~','local','ec','data','phzfiles','scl.phz');
-force_combine = false;
+savename = fullfile('~','local','ec','data','phzfiles','scl_with_stimulus_name.phz');
 
-%% phzlab code
+%% code
 
 if nargin > 0 && nargin < 3
     for i = 1:length(varargin)
@@ -88,6 +87,7 @@ if ~exist('files', 'var') && ~isempty(folder)
     files = names(ind);
 end
 
+% add folder path to each filename
 if ~isempty(folder)
     for i = 1:length(files)
         files{i} = fullfile(folder, files{i});
@@ -110,12 +110,13 @@ for i = 1:length(files)
         fprintf('Processing ec file %i/%i: ''%s''\n', i, length(files), currentFile)
     end
         
-    PHZ = phz_create('file',currentFile,...
-        'namestr',filenameConvention,...
-        'channel',channelNumber,...
-        'study',study,...
-        'datatype',datatype, ...
-        'verbose',verbose);
+%% phzlab code
+    PHZ = phz_create('file',        currentFile,...
+                     'namestr',     filenameConvention,...
+                     'channel',     channelNumber,...
+                     'study',       study,...
+                     'datatype',    datatype, ...
+                     'verbose',     verbose);
 
     PHZ.group = ec_group([char(PHZ.participant),'-',char(PHZ.session)]);
     PHZ.region = region;
@@ -139,7 +140,7 @@ for i = 1:length(files)
 %         char(PHZ.group),'-',...
 %         char(PHZ.session)];
     times = dlmread(fullfile(epochTimesFolder,[filename,'.txt']));
-    PHZ = phz_epoch(PHZ,extractWindow,times,'timeUnits','samples','verbose',verbose);
+    PHZ = phz_epoch(PHZ,times,extractWindow,'timeUnits','samples','verbose',verbose);
     
     PHZ = insertTrialsAndBehaviouralResponses(PHZ,behavFolder);
     
