@@ -1,10 +1,15 @@
 function s = ec_convertbehav(id)
 
 rawFolder = fullfile('~','local','ec','data','raw');
-stimfolder = fullfile('~','local','ec','stimuli_all');
+stimFolder = fullfile('~','local','ec','stimuli_all');
 suffix = '-logfile';
+fname = fullfile(rawFolder, [id, suffix, '.mat']);
 
-d = load(fullfile(rawFolder, [id, suffix, '.mat']));
+if ~exist(rawFolder, 'dir'), error(['Folder ''', rawFolder, ''' doesn''t exist']), end
+if ~exist(stimFolder, 'dir'), error(['Folder ''', stimFolder, ''' doesn''t exist']), end
+if ~exist(fname, 'file'), error(['File doesn''t exist: ', fname]), end
+
+d = load(fname);
 
 s.resp          = [d.nResp(:,1);        d.nResp(:,2)];
 s.rt            = [d.respTime(:,1);     d.respTime(:,2)];
@@ -13,7 +18,7 @@ s.stimFiles     = [d.stimFiles(:,1);    d.stimFiles(:,2)];
 s.stimOrder     = [d.stimOrder(:,1);    d.stimOrder(:,2)];
 
 s.stimFiles     = s.stimFiles(s.stimOrder);
-RAVDESSfilenames = strcat(stimfolder, '/', s.stimFiles);
+RAVDESSfilenames = strcat(stimFolder, '/', s.stimFiles);
 stimInfo = getRAVDESSinfo(RAVDESSfilenames, false);
 s.answerString=stimInfo{:,'emotion'};
 
