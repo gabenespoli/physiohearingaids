@@ -1,162 +1,50 @@
-function PHZ = ec_phz_create(varargin)
-%% ec physio load phzfiles script
-% 
-%   1. pops up a dialog to select multiple acq-saved-as-mat files
-%   2. loads the data and creates a PHZ file
-%   3. filters the data
-%   4. loads the marker channel and finds epoch times
-%   5. epochs the data
-%   6. saves the PHZ file.
-%   7. combines all PHZ files into a single one and returns it
+function PHZ = ec_phz_create(id, datatype, verbose)
+% input ids is a string or cell of participant ids. i.e., {'10-1', '10-2'}
 
-%% settings
-verbose = false;
+if nargin < 2, datatype = 'scl'; end
+if nargin < 3, verbose = true; end
 
-% 1. phz_create
-study = 'Hearing Aids SCL';
-filenameConvention = 'participant-group-session';
+% settings
+rawFolder       = fullfile('~','local','ec','data','raw');
+timesSuffix     = '-times';
 
-datatype = 'scl';
-channelNumber = getChannelNumber(datatype);
-
-region.baseline = [-1 0]; % in s
-region.target = [1 5]; % in s
-region.target2 = [];
-region.target3 = [];
-region.target4 = [];
-
-% 2. phz_transform
-conversionFactor = getConversionFactor(datatype);
-dataUnits = getDataUnits(datatype);
-
-% 3. phz_filter [locut hicut notch]
-% EMG [10 450], RSP [0.5 1], SCR [0.05 0], PPG [0.5 3], ([hp lp])
-%                            SCL []
-filterCutoff = [0.05 0 0];
-filterOrder = 4;
-do_zerophase = false;
-
-% 4a. phzUtil_findAudioMarkers
-% exceptions:
-% 1-1, thresh 0.1 found 55 markers, removed 11th marker, 54 markers remain
-% 2-1, thresh 0.1 found 66 markers, removed 1st and 2nd, 64 remain
-% 7-1, thresh 0.1 found 22 23 24
-% 9-2, remove 1st
-% 10-1 remove 28th
-% ? 12-2, 65 markers, looks like there are really only 62 good ones though
-% markerChannel = 6;
-% threshold = 0.1;
-% markerBetween = 1; % in seconds (converted to samples below)
-% plotMarkers = false;
-% numMarkers = 64;
-
-% 4b. phz_epoch
-extractWindow = [0 8]; % in seconds
-
-% 5. phz_save
-saveFolder       = fullfile('~','local','ec','data','phzfiles',datatype);
-epochTimesFolder = fullfile('~','local','ec','data','epoch_times_in_samples');
-behavFolder      = fullfile('~','local','ec','data','behav');
-force = true;
-
-% 6. phz_combine
-savename = fullfile('~','local','ec','data','phzfiles','scl_with_stimulus_name.phz');
-
-%% code
-
-if nargin > 0 && nargin < 3
-    for i = 1:length(varargin)
-        if ischar(varargin{i}) && ... % folder
-           isdir(varargin{i})
-            folder = varargin{i};
-        elseif (ischar(varargin{i}) && exist(varargin{i}, 'file')) || ...
-                iscell(varargin{i}) % file(s)
-            files = cellstr(varargin{i});
-        end
-    end
-else
-    % pop-up window to select files
-    [files,folder] = uigetfile('.mat','MultiSelect','on');
-end
-
-if ~exist('files', 'var') && ~isempty(folder)
-    d = dir(folder); % get files in folder
-    names = {d.name}; % get only filenames
-    ind = regexp(names, '^.*\.mat$'); % get only mat files
-    ind = ~cellfun(@isempty, ind); % convert cell to vector
-    files = names(ind);
-end
-
-% add folder path to each filename
-if ~isempty(folder)
-    for i = 1:length(files)
-        files{i} = fullfile(folder, files{i});
-    end
-end
-
-% loop through files
-for i = 1:length(files)
-
-    if exist(files{i}, 'file')
-        [pathstr,filename] = fileparts(files{i});
-    else
-        pathstr = folder;
-    end
-    currentFile = fullfile(pathstr,[filename,'.mat']);
-    if ~exist(currentFile, 'file')
-        warning(['File ''', currentFile, ''' not found. Skipping...'])
-        continue
-    else
-        fprintf('Processing ec file %i/%i: ''%s''\n', i, length(files), currentFile)
-    end
+% prepare
+datafile  = fullfile(rawFolder, [id, '.mat']);
+timesfile = fullfile(rawFolder, [id, timesSuffix, '.txt']);
+verifyFilesExist(datafile, timesfile);
         
-%% phzlab code
-    PHZ = phz_create('file',        currentFile,...
-                     'namestr',     filenameConvention,...
-                     'channel',     channelNumber,...
-                     'study',       study,...
-                     'datatype',    datatype, ...
-                     'verbose',     verbose);
+% create PHZ var
+PHZ = phz_create('file',        datafile, ...
+                 'namestr',     'participant-session', ...
+                 'channel',     getChannelNumber(datatype), ...
+                 'study',        'Hearing Aids SCL', ...
+                 'datatype',    datatype, ...
+                 'group',       ec_group(id), ...
+                 'verbose',     verbose);
+PHZ.region.baseline = [-1 0]; % in s
+PHZ.region.target = [1 5]; % in s
 
-    PHZ.group = ec_group([char(PHZ.participant),'-',char(PHZ.session)]);
-    PHZ.region = region;
-    
-    PHZ = phz_transform(PHZ,conversionFactor,verbose);
-    PHZ.units = dataUnits;
-    
-    PHZ = phz_filter(PHZ,filterCutoff,...
-        'zerophase',do_zerophase,...
-        'order',filterOrder,...
-        'verbose',verbose);
+% PHZ = phzBiopac_transform(PHZ, getBiopacGain(datatype), 'u', verbose);
+PHZ = phz_transform(PHZ,getConversionFactor(datatype),verbose);
+PHZ.units = getDataUnits(datatype); 
 
-%     markerData = phz_create('file',currentFile,'channel',markerChannel);
-%     times = phzUtil_findAudioMarkers(markerData.data,...
-%         threshold,markerBetween * markerData.srate,...
-%         'window',extractWindow * markerData.srate,...
-%         'numMarkers',numMarkers,...
-%         'plotMarkers',plotMarkers);
+% filtering
+% EMG [10 450], RSP [0.5 1], SCL [0.05 0], PPG [0.5 3],
+PHZ = phz_filter(PHZ, [0.05 0 0],...
+                 'order',     4,...
+                 'zerophase', false,...
+                 'verbose',   verbose);
 
-%     timesFilename = [char(PHZ.participant),'-',...
-%         char(PHZ.group),'-',...
-%         char(PHZ.session)];
-    times = dlmread(fullfile(epochTimesFolder,[filename,'.txt']));
-    PHZ = phz_epoch(PHZ,times,extractWindow,'timeUnits','samples','verbose',verbose);
-    
-    PHZ = insertTrialsAndBehaviouralResponses(PHZ,behavFolder);
-    
-    phz_save(PHZ,fullfile(saveFolder,[filename,'.phz']),verbose,force);
-    
-    % save epoch times to text file
-%     fid = fopen(fullfile(epochTimesFolder,[filename,'.txt']),'w');
-%     fprintf(fid,'%i\n',PHZ.proc.epoch.times);
-%     fclose(fid);
-    
-end
+% epoching
+times = dlmread(timesfile);
+PHZ = phz_epoch(PHZ, ...
+                times, ...
+                [0 8], ...
+                'timeUnits', 'samples', ...
+                'verbose',   verbose);
 
-PHZ = phz_combine(saveFolder);
-
-PHZ = phz_save(PHZ, savename, true, false);
-
+% behavioural data
+PHZ = insertTrialsAndBehaviouralResponses(PHZ, id);
 
 end
 
@@ -189,11 +77,9 @@ switch lower(datatype)
 end
 end
 
-function PHZ = insertTrialsAndBehaviouralResponses(PHZ,behavFolder)
-% load behav file
-load(fullfile(behavFolder,...
-    [char(PHZ.participant),'-',char(PHZ.session),'.mat']),...
-    'answerString','respString','ACC','RT','stimFiles');
+function PHZ = insertTrialsAndBehaviouralResponses(PHZ, id)
+
+s = ec_convertbehav(id);
 
 % deal with exceptions (i.e., incorrect number of epochs)
 % 1-1, thresh 0.1 found 55 markers, removed 11th marker, 54 markers remain
@@ -205,7 +91,7 @@ load(fullfile(behavFolder,...
 % 12-2, 65 markers, looks like there are really only 62 good ones though
 % 14-1, can't read mat file
 % 30-2, can't read mat file
-switch [char(PHZ.participant),'-',char(PHZ.session)]
+switch id
     case '1-1',     ind = [1:32,43:64]; % 54 markers
     case '4-1',     ind = 1:31; % 31 markers
     case '4-2',     ind = 1:32; % 32 markers
@@ -218,15 +104,23 @@ switch [char(PHZ.participant),'-',char(PHZ.session)]
 end
 
 % add trial info and responses
-PHZ.lib.tags.trials = answerString(ind);
-PHZ.resp.q1 = respString(ind);
-PHZ.resp.q1_acc = ACC(ind);
-PHZ.resp.q1_rt = RT(ind);
+PHZ.lib.tags.trials = s.answerString(ind);
+PHZ.resp.q1 = s.respString(ind);
+PHZ.resp.q1_acc = s.acc(ind);
+PHZ.resp.q1_rt = s.rt(ind);
 
 % set trial order and plot colours
 PHZ.trials = {'angry','happy','sad','calm'};
 PHZ.lib.spec.trials = {'k-.','k-','k:','k--'};
 
 % save stimulus orders too
-PHZ.lib.tags.condition = stimFiles(ind);
+PHZ.lib.tags.condition = s.stimFiles(ind);
+end
+
+function verifyFilesExist(varargin)
+for i = 1:length(varargin)
+    if ~exist(varargin{i}, 'file')
+        error(['File doesn''t exist: ', varargin{i}])
+    end
+end
 end
