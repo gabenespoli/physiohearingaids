@@ -1,57 +1,38 @@
-function ec_convertbehav
+function s = ec_convertbehav(id)
 
-folderin=fullfile('~','local','ec','data','raw_behav');
-folderout=fullfile('~','local','ec','data','behav');
-stimfolder = fullfile('~','local','ec','stimuli');
-id=ec_datafiles;
+rawFolder = fullfile('~','local','ec','data','raw');
+stimfolder = fullfile('~','local','ec','stimuli_all');
+suffix = '-logfile';
 
-for p=1:length(id)
-    fprintf('%i/%i: %s\n', p, length(id), id{p})
+d = load(fullfile(rawFolder, [id, suffix, '.mat']));
 
-    clear nResp respTime sResp stimFiles stimOrder
-    clear resp RT respString stimInfo answerString answer
-    clear happy sad angry calm ACC
+s.resp          = [d.nResp(:,1);        d.nResp(:,2)];
+s.rt            = [d.respTime(:,1);     d.respTime(:,2)];
+s.respString    = [d.sResp(:,1);        d.sResp(:,2)];
+s.stimFiles     = [d.stimFiles(:,1);    d.stimFiles(:,2)];
+s.stimOrder     = [d.stimOrder(:,1);    d.stimOrder(:,2)];
 
-    load(fullfile(folderin,[id{p},'.mat']))
-    stimulusSet = id{p}(end);
-    if strcmp(stimulusSet, '1'), stimulusSet = ''; end
+s.stimFiles     = s.stimFiles(s.stimOrder);
+RAVDESSfilenames = strcat(stimfolder, '/', s.stimFiles);
+stimInfo = getRAVDESSinfo(RAVDESSfilenames, false);
+s.answerString=stimInfo{:,'emotion'};
 
-    resp=[nResp(:,1);nResp(:,2)];
-    RT=[respTime(:,1);respTime(:,2)];
-    respString=[sResp(:,1);sResp(:,2)];
-    stimFiles=[stimFiles(:,1);stimFiles(:,2)];
-    stimOrder=[stimOrder(:,1);stimOrder(:,2)];
-    
-    stimFiles = stimFiles(stimOrder);
-    RAVDESSfilenames = strcat(stimfolder, stimulusSet, '/', stimFiles);
-    stimInfo=getRAVDESSinfo(RAVDESSfilenames, false);
-    % stimInfo=stimInfo(stimOrder,:);
-    answerString=stimInfo{:,'emotion'};
+s.happy = find(strcmp(s.answerString,'happy'));
+s.sad   = find(strcmp(s.answerString,'sad'));
+s.angry = find(strcmp(s.answerString,'angry'));
+s.calm  = find(strcmp(s.answerString,'calm'));
 
-    happy=find(strcmp(answerString,'happy'));
-    sad=find(strcmp(answerString,'sad'));
-    angry=find(strcmp(answerString,'angry'));
-    calm=find(strcmp(answerString,'calm'));
+s.answer(s.happy) = 1;
+s.answer(s.sad)   = 2;
+s.answer(s.angry) = 3;
+s.answer(s.calm)  = 4;
+s.answer=s.answer';
 
-    answer(happy)=1; %#ok<AGROW>
-    answer(sad)=2; %#ok<AGROW>
-    answer(angry)=3; %#ok<AGROW>
-    answer(calm)=4; %#ok<AGROW>
-    answer=answer';
-
-    for i=1:length(resp)
-        if answer(i)==resp(i)
-            ACC(i)=1; %#ok<AGROW>
-        else 
-            ACC(i)=0; %#ok<AGROW>
-        end
+for i=1:length(s.resp)
+    if s.answer(i)==s.resp(i)
+        s.acc(i)=1;
+    else 
+        s.acc(i)=0;
     end
-    ACC=ACC';
-
-    % all vars that are saved should be in the correct order
-    % so we won't save stimOrder so that we don't get confused later
-    save(fullfile(folderout,[id{p},'.mat']),'resp','respString','answer',...
-        'answerString','RT','ACC','happy','sad','angry','calm',...
-        'stimFiles')
-    
 end
+s.acc = s.acc';
