@@ -61,5 +61,8 @@ allgroups={'1-1'      'normal';
          '34-2'     'aided';
          '35-1'     'impaired';
          '35-2'     'aided';
+         '36-1'     'impaired';
+         '36-2'     'aided';
+         '37-1'     'normal';
          };
 end
