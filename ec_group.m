@@ -23,7 +23,7 @@ allgroups={'1-1'      'normal';
          '9-2'      'aided';
          '10-1'     'impaired';
          '10-2'     'aided';
-         '11-1'     'normal';
+         '11-1'     'impaired';
          '12-1'     'impaired';
          '12-2'     'aided';
          '13-1'     'impaired';
