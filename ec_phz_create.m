@@ -1,5 +1,13 @@
-function PHZ = ec_phz_create(id, datatype, verbose)
-% input ids is a string or cell of participant ids. i.e., {'10-1', '10-2'}
+function [PHZ, raw] = ec_phz_create(id, datatype, verbose)
+%ec_phz_create  For a single file. Use phz_create_loop for looping.
+%
+% usage:
+%   PHZ = ec_phz_create(id, [datatype='scl', verbose=true])
+%
+% input:
+%   id          = [string] participant id. i.e., '10-1'
+%   datatype    = [string] 'scl', 'emg', etc.
+%   verbose     = [true|false]
 
 if nargin < 2, datatype = 'scl'; end
 if nargin < 3, verbose = true; end
@@ -12,23 +20,31 @@ timesSuffix     = '-times';
 datafile  = fullfile(rawFolder, [id, '.mat']);
 timesfile = fullfile(rawFolder, [id, timesSuffix, '.txt']);
 verifyFilesExist(datafile, timesfile);
-        
+
 % create PHZ var
 PHZ = phz_create('file',        datafile, ...
                  'namestr',     'participant-session', ...
                  'channel',     getChannelNumber(datatype), ...
                  'study',        'Hearing Aids SCL', ...
-                 'datatype',    datatype, ...
+                 'datatype',    upper(datatype), ...
                  'group',       ec_group(id), ...
                  'verbose',     verbose);
-PHZ.region.baseline = [-1 0]; % in s
-PHZ.region.target = [1 5]; % in s
+raw = PHZ;
 
-% PHZ = phzBiopac_transform(PHZ, getBiopacGain(datatype), 'u', verbose);
-PHZ = phz_transform(PHZ,getConversionFactor(datatype),verbose);
-PHZ.units = getDataUnits(datatype); 
+% convert units to microsiemens (uS) if necessary
+if ~strcmp(PHZ.units, 'microsiemens')
+    conversionFactor = getConversionFactor(datatype);
+    PHZ = phz_history(PHZ, ...
+                      ['Units are not microsiemens. Using conversion of ', ...
+                      num2str(conversionFactor), ' microsiemens per volt.'], ...
+                      verbose);
+    PHZ = phz_transform(PHZ, conversionFactor, verbose);
+    PHZ.units = getDataUnits(datatype); 
+end
 
 % filtering
+% PHZ.data = medfilt1(PHZ.data,7);
+% PHZ = phz_smooth(PHZ, 'rms');
 % EMG [10 450], RSP [0.5 1], SCL [0.05 0], PPG [0.5 3],
 PHZ = phz_filter(PHZ, [0.05 0 0],...
                  'order',     4,...
@@ -39,9 +55,12 @@ PHZ = phz_filter(PHZ, [0.05 0 0],...
 times = dlmread(timesfile);
 PHZ = phz_epoch(PHZ, ...
                 times, ...
-                [0 8], ...
+                [0 8], ... % marker starts 1 s before stimulus
                 'timeUnits', 'samples', ...
+                'timesAdjust', -1, ... % adjust times to be [-1 7]
                 'verbose',   verbose);
+PHZ.region.baseline = [-1 0]; % in s
+PHZ.region.target = [1 5]; % in s
 
 % behavioural data
 PHZ = insertTrialsAndBehaviouralResponses(PHZ, id);
@@ -63,7 +82,7 @@ switch lower(datatype)
     case 'zyg',         units = 'mV';
     case 'cor',         units = 'mV';
     case 'rsp',         units = '';
-    case {'scl','scr'}, units = '\muS';
+    case {'scl','scr'}, units = 'microsiemens';
     case {'hr','ppg'},  units = '';
 end
 end
@@ -72,7 +91,8 @@ function conversionFactor = getConversionFactor(datatype)
 switch lower(datatype)
     case {'zyg','cor'}, conversionFactor = (1/1000)*1000;
     case 'rsp',         conversionFactor = 1/10;
-    case {'scl','scr'}, conversionFactor = 1/5;
+    % case {'scl','scr'}, conversionFactor = 1/5;
+    case {'scl','scr'}, conversionFactor = 5;
     case {'hr','ppg'},  conversionFactor = 1/100;
 end
 end
@@ -95,6 +115,8 @@ switch id
     case '1-1',     ind = [1:32,43:64]; % 54 markers
     case '4-1',     ind = 1:31; % 31 markers
     case '4-2',     ind = 1:32; % 32 markers
+    % case '12-2',    ind = 3:64; % 62 markers
+    case '12-2',    ind = 5:64; % 60 markers
     case '15-1',    ind = 6:64; % 59 markers
     case '23-1',    ind = 2:64; % 63 markers
     case '24-1',    ind = 5:64; % 60 markers
