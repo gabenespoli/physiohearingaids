@@ -41,6 +41,8 @@ if ~strcmp(PHZ.units, 'microsiemens')
                       verbose);
     PHZ = phz_transform(PHZ, conversionFactor, verbose);
     PHZ.units = getDataUnits(datatype); 
+    warning('Units are not already microsiemens, manually converting them...')
+    % TODO this was required for ids 12-1, 12-2, 13-1
 end
 
 % filtering
