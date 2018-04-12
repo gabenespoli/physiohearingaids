@@ -11,6 +11,7 @@ function [PHZ, raw] = ec_phz_create(id, datatype, verbose)
 
 if nargin < 2, datatype = 'scl'; end
 if nargin < 3, verbose = true; end
+if ~ischar(id), error('ID must be a string'), end
 
 % settings
 rawFolder       = fullfile('~','local','ec','data','raw');
