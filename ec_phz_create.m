@@ -94,8 +94,7 @@ function conversionFactor = getConversionFactor(datatype)
 switch lower(datatype)
     case {'zyg','cor'}, conversionFactor = (1/1000)*1000;
     case 'rsp',         conversionFactor = 1/10;
-    % case {'scl','scr'}, conversionFactor = 1/5;
-    case {'scl','scr'}, conversionFactor = 5;
+    case {'scl','scr'}, conversionFactor = 1/5;
     case {'hr','ppg'},  conversionFactor = 1/100;
 end
 end
