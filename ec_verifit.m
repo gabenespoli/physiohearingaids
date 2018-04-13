@@ -1,4 +1,4 @@
-function [fit,id] = ec_verifit(freqs,presLevel)
+function fit = ec_verifit(freqs,presLevel)
 
 if nargin < 1, freqs = [500 1000 2000 4000]; end
 if nargin < 2, presLevel = 2; end % 1 = 55; 2 = 65; 3 = 75
@@ -40,7 +40,7 @@ illegalHeaderChars = {' ','-'};
 for i = 1:size(d,2)
     
     % check for nan headers
-    if isnan(d{1,i}), rminds = [rminds i]; end
+    if isnan(d{1,i}), rminds = [rminds i]; end %#okAGROW
     
     % check for illegal characters
     for j = 1:length(illegalHeaderChars)
