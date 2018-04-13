@@ -109,12 +109,14 @@ for i=1:size(filenames,1)
     end
 
     % 9. RMS
-    [y,Fs] = audioread(filenames{i});
-    % remove first second, remove white noise channel
-    sample1 = 1 * Fs;
-    sample2 = 3 * Fs;
-    y = y(sample1:sample2, 1);
-    stiminfo{i,10} = sqrt(mean(mean(y .^ 2)));
+    if exist(filenames{i}, 'file')
+        [y,Fs] = audioread(filenames{i});
+        % remove first second, remove white noise channel
+        sample1 = 1 * Fs;
+        sample2 = 3 * Fs;
+        y = y(sample1:sample2, 1);
+        stiminfo{i,10} = sqrt(mean(mean(y .^ 2)));
+    end
 
 end
 stiminfo(rmInds,:) = [];
