@@ -29,5 +29,6 @@ PHZ = phz_combine(filenames);
 % set some plotting parameters
 PHZ.group = {'normal', 'impaired', 'aided'};
 PHZ.lib.spec.group = {'k-', 'k', 'k--'};
+PHZ = ec_presets(PHZ);
 
 end
