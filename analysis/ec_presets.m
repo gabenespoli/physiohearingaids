@@ -9,9 +9,10 @@ PHZ.group = {'normal', 'impaired', 'aided'}; % set order for plotting
 PHZ.lib.spec.group = {'k-', 'k:', 'k--'};
 tooSlowRT = 'PHZ.resp.q1_rt < 7';
 
-sclProcessing.reject        = 1;
-sclProcessing.blsub         = [0 1];
-sclProcessing.region        = [1 5];
+% sclProcessing.norm          = 'participant';
+% sclProcessing.blsub         = [0 1];
+% sclProcessing.reject        = 0.05;
+% sclProcessing.region        = [1 5];
 sclProcessing.feature       = 'mean';
 
 sclDefaults                 = sclProcessing;
@@ -94,5 +95,35 @@ PHZ.lib.plots.(name)                = PHZ.lib.plots.sclMeanByEmo;
 PHZ.lib.plots.(name).filename       = fullfile(plotFolder, ['Figure 12 ', name, ext]);
 PHZ.lib.plots.(name).feature        = '';
 PHZ.lib.plots.(name).smooth         = true;
+
+%% plots: scl testing
+% HP filter, log transform, square root transform, z-score
+name = 'sclMean_log';
+PHZ.lib.plots.(name)                = sclDefaults;
+PHZ.lib.plots.(name).filename       = fullfile(plotFolder, [name, ext]);
+PHZ.lib.plots.title                 = true;
+PHZ.lib.plots.(name).summary        = 'group';
+PHZ.lib.plots.(name).transform      = 'log';
+
+name = 'sclMeanByEmo_log';
+PHZ.lib.plots.(name)                = PHZ.lib.plots.sclMean_log;
+PHZ.lib.plots.(name).filename       = fullfile(plotFolder, [name, ext]);
+PHZ.lib.plots.title                 = true;
+PHZ.lib.plots.(name).summary        = {'group','trials'};
+PHZ.lib.plots.(name).fontsize       = plotDefaults.fontsize + 4;
+
+name = 'sclMean_sqrt';
+PHZ.lib.plots.(name)                = sclDefaults;
+PHZ.lib.plots.(name).filename       = fullfile(plotFolder, [name, ext]);
+PHZ.lib.plots.title                 = true;
+PHZ.lib.plots.(name).summary        = 'group';
+PHZ.lib.plots.(name).transform      = 'sqrt';
+
+name = 'sclMeanByEmo_sqrt';
+PHZ.lib.plots.(name)                = PHZ.lib.plots.sclMean_log;
+PHZ.lib.plots.(name).filename       = fullfile(plotFolder, [name, ext]);
+PHZ.lib.plots.title                 = true;
+PHZ.lib.plots.(name).summary        = {'group','trials'};
+PHZ.lib.plots.(name).fontsize       = plotDefaults.fontsize + 4;
 
 end
